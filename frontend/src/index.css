@@ -1,2 +1,15 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #root { width: 100vw; height: 100vh; overflow: hidden; }
+
+/* Si la pantalla mide menos de 768px (móviles y tablets) */
+@media (max-width: 768px) {
+  .sidebar-responsivo {
+    position: absolute; /* Flota sobre el contenido */
+    height: 100%;
+    z-index: 100;
+  }
+  
+  .contenido-principal {
+    margin-left: 0 !important; /* El contenido ocupa todo el ancho */
+  }
+}

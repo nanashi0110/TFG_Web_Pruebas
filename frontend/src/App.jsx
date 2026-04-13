@@ -86,25 +86,46 @@ function ListaClientes() {
 // 🔀 LAYOUT PRINCIPAL (Sidebar + Contenido)
 // ==========================================
 function App() {
-  const [menuAbierto, setMenuAbierto] = useState(true);
+  const [esMovil, setEsMovil] = useState(window.innerWidth <= 768);
+  const [menuAbierto, setMenuAbierto] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const movil = window.innerWidth <= 768;
+      setEsMovil(movil);
+      if (movil) setMenuAbierto(false); 
+      else setMenuAbierto(true); 
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const cerrarSiEsMovil = () => {
+    if (esMovil) setMenuAbierto(false);
+  };
 
   return (
     <BrowserRouter>
-      {/* Contenedor principal 100% de la pantalla */}
-      <div style={{ display: 'flex', width: '100%', height: '100%', fontFamily: 'sans-serif' }}>
+      <div style={{ display: 'flex', width: '100vw', height: '100vh', fontFamily: 'sans-serif', overflow: 'hidden', position: 'relative' }}>
         
         {/* === SIDEBAR (Izquierda) === */}
         <div style={{ 
-          width: menuAbierto ? '260px' : '70px', 
+          width: menuAbierto ? '260px' : (esMovil ? '0px' : '70px'), 
           background: '#0D1117', 
           color: 'white',
           transition: 'width 0.3s ease', 
           display: 'flex', 
           flexDirection: 'column',
           boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-          zIndex: 10 // Asegura que el menú esté por encima
+          zIndex: 100, 
+          position: esMovil ? 'absolute' : 'relative', 
+          height: '100%',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap' // ✅ TRUCO: Evita que el texto se aplaste en la animación
         }}>
           {/* Cabecera del Sidebar */}
+          {/* ✅ CORRECCIÓN: Hemos quitado el minWidth: '260px' de aquí */}
           <div style={{ padding: '20px', background: '#1A202C', display: 'flex', justifyContent: menuAbierto ? 'space-between' : 'center', alignItems: 'center' }}>
             {menuAbierto && <span style={{ fontWeight: 'bold', fontSize: '18px' }}>Dashboard</span>}
             <button 
@@ -117,21 +138,39 @@ function App() {
           </div>
 
           {/* Enlaces */}
-          <div style={{ display: 'flex', flexDirection: 'column', padding: '15px', gap: '10px', marginTop: '10px' }}>
-            <Link to="/" style={linkStyle}>{menuAbierto ? '🏠 Inicio' : '🏠'}</Link>
-            <Link to="/clientes" style={linkStyle}>{menuAbierto ? '📋 Clientes' : '📋'}</Link>
-            <Link to="/nuevo-cliente" style={linkStyle}>{menuAbierto ? '➕ Nuevo Cliente' : '➕'}</Link>
+          {/* ✅ CORRECCIÓN: También hemos quitado el minWidth de aquí y centramos los iconos al cerrar */}
+          <div style={{ display: 'flex', flexDirection: 'column', padding: '15px', gap: '10px', marginTop: '10px', alignItems: menuAbierto ? 'stretch' : 'center' }}>
+            <Link to="/" onClick={cerrarSiEsMovil} style={linkStyle}>{menuAbierto ? '🏠 Inicio' : '🏠'}</Link>
+            <Link to="/clientes" onClick={cerrarSiEsMovil} style={linkStyle}>{menuAbierto ? '📋 Clientes' : '📋'}</Link>
+            <Link to="/nuevo-cliente" onClick={cerrarSiEsMovil} style={linkStyle}>{menuAbierto ? '➕ Nuevo Cliente' : '➕'}</Link>
           </div>
         </div>
 
         {/* === ZONA DE CONTENIDO (Derecha) === */}
-        <div style={{ flex: 1, padding: '50px', background: '#F3F4F6', overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: esMovil ? '20px' : '50px', background: '#F3F4F6', overflowY: 'auto', width: '100%' }}>
+          {esMovil && !menuAbierto && (
+            <button 
+              onClick={() => setMenuAbierto(true)}
+              style={{ padding: '10px 15px', marginBottom: '20px', background: '#0D1117', color: 'white', border: 'none', borderRadius: '5px', fontSize: '18px', cursor: 'pointer' }}
+            >
+              ☰ Menú
+            </button>
+          )}
+
           <Routes>
             <Route path="/" element={<Inicio />} />
             <Route path="/clientes" element={<ListaClientes />} />
             <Route path="/nuevo-cliente" element={<NuevoCliente />} />
           </Routes>
         </div>
+
+        {/* === OVERLAY (Capa oscura) === */}
+        {esMovil && menuAbierto && (
+          <div 
+            onClick={() => setMenuAbierto(false)} 
+            style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          />
+        )}
 
       </div>
     </BrowserRouter>
