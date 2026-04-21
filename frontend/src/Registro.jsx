@@ -58,7 +58,7 @@ function Registro({ token }) {
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nombre de Usuario:</label>
-            <input type="text" value={usuario} onChange={(e) => setUsuario(e.target.value)} placeholder="Ej: admin" required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
+            <input type="text" value={usuario} onChange={(e) => setUsuario(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contraseña:</label>
