@@ -1,17 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  
+  // ✅ AQUÍ ESTÁ EL PUENTE QUE HABÍAMOS PERDIDO
   server: {
     proxy: {
-      // Cada vez que escribas "/api" en un fetch, 
-      // Vite lo enviará a localhost:3000
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3000', // <-- Cambia el 5000 si tu servidor Node usa otro puerto
         changeOrigin: true,
-        secure: false,
       }
     }
+  },
+
+  // ✅ AQUÍ ESTÁ LA CURA DEL CALENDARIO
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['react-big-calendar']
   }
 })

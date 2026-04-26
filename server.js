@@ -6,6 +6,7 @@ const cors = require('cors');
 // --- IMPORTACIONES DE RUTAS (Modulares) ---
 const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes'); // <-- NUEVO: Importamos el mapa de clientes
+const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 const port = 3000;
@@ -42,6 +43,9 @@ app.use('/api/auth', authRoutes);
 
 // Enrutador de Clientes (/api/customers/...)
 app.use('/api/customers', customerRoutes);
+
+// Enrutador de Tareas (/api/tasks/...)
+app.use('/api/tasks', taskRoutes);
 
 // --- ARRANCAR EL SERVIDOR ---
 app.listen(port, function() {
