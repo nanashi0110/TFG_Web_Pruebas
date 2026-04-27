@@ -44,7 +44,16 @@ tipoRecurrencia: {
     // ✅ Hemos añadido Quincenal, Trimestral y Semestral a la lista permitida
     enum: ['Diaria', 'Semanal', 'Quincenal', 'Mensual', 'Trimestral', 'Semestral', 'Anual', 'Ninguna'], 
     default: 'Ninguna' 
-  }
+  },
+horaInicio: { 
+    type: String, default: "09:00" 
+},
+horaFin: { 
+    type: String, default: "14:00" 
+},
+todoElDia: { 
+    type: Boolean, default: false }
+    
 }, {
   timestamps: true
 });

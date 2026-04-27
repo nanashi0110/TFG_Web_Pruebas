@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const authMiddleware = require('../middleware/authMiddleware'); // <-- NUEVO: Traemos al portero
+// Ya no necesitamos el middleware aquí para el registro público
 
 // ==========================================
 // RUTAS DE AUTENTICACIÓN
 // ==========================================
 
-// RUTA PÚBLICA: Iniciar sesión (Cualquiera puede intentar entrar)
+// RUTA PÚBLICA: Iniciar sesión
 router.post('/login', authController.loginUsuario);
 
-// RUTA PRIVADA: Registrar usuario (Solo un administrador logueado puede hacerlo)
-// Fíjate que hemos metido a 'authMiddleware' en medio de la ruta
-router.post('/registro', authMiddleware, authController.registrarUsuario);
+// ✅ RUTA AHORA PÚBLICA: Registrar usuario 
+// Hemos quitado 'authMiddleware' para que puedas crear usuarios en cualquier deploy
+router.post('/registro', authController.registrarUsuario);
 
 module.exports = router;

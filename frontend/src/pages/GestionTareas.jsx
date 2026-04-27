@@ -13,7 +13,8 @@ export default function GestionTareas({ token }) {
   
   const [formulario, setFormulario] = useState({
     titulo: '', clienteId: '', fechaVencimiento: '', prioridad: 'Media',
-    esRecurrente: false, tipoRecurrencia: 'Mensual'
+    esRecurrente: false, tipoRecurrencia: 'Mensual',
+    horaInicio: '09:00', horaFin: '14:00', todoElDia: false 
   });
 
   useEffect(() => {
@@ -96,13 +97,20 @@ export default function GestionTareas({ token }) {
       fechaVencimiento: fechaFormateada,
       prioridad: tarea.prioridad,
       esRecurrente: tarea.esRecurrente || false,
-      tipoRecurrencia: tarea.tipoRecurrencia || 'Mensual'
+      tipoRecurrencia: tarea.tipoRecurrencia || 'Mensual',
+      horaInicio: tarea.horaInicio || '09:00',
+      horaFin: tarea.horaFin || '14:00',
+      todoElDia: tarea.todoElDia || false
     });
   };
 
   const cancelarEdicion = () => {
     setEditandoId(null);
-    setFormulario({ titulo: '', clienteId: '', fechaVencimiento: '', prioridad: 'Media', esRecurrente: false, tipoRecurrencia: 'Mensual' });
+    setFormulario({ 
+      titulo: '', clienteId: '', fechaVencimiento: '', prioridad: 'Media', 
+      esRecurrente: false, tipoRecurrencia: 'Mensual',
+      horaInicio: '09:00', horaFin: '14:00', todoElDia: false
+    });
   };
 
   const coloresPrioridad = {
@@ -123,7 +131,12 @@ export default function GestionTareas({ token }) {
 
       {!verResueltas && (
         <div style={{ background: editandoId ? '#EBF8FF' : 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginBottom: '30px', border: editandoId ? '2px solid #3182CE' : 'none' }}>
-          <h3 style={{ marginTop: 0, color: '#4B5563', fontSize: '16px' }}>{editandoId ? '✏️ Editando Tarea' : '➕ Asignar Nueva Tarea'}</h3>
+          
+          {/* ✅ AJUSTE: He añadido un marginBottom de 20px para separar el título del formulario */}
+          <h3 style={{ marginTop: 0, marginBottom: '20px', color: '#4B5563', fontSize: '16px' }}>
+            {editandoId ? '✏️ Editando Tarea' : '➕ Asignar Nueva Tarea'}
+          </h3>
+
           <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <input type="text" placeholder="¿Qué hay que hacer?" required style={inputStyle} value={formulario.titulo} onChange={e => setFormulario({...formulario, titulo: e.target.value})} />
             
@@ -143,29 +156,62 @@ export default function GestionTareas({ token }) {
               <option value="Urgente">🚨 URGENTE</option>
             </select>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#F7FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-              <input 
-                type="checkbox" 
-                id="checkRecurrente"
-                checked={formulario.esRecurrente} 
-                onChange={e => setFormulario({...formulario, esRecurrente: e.target.checked})} 
-                style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-              />
-              <label htmlFor="checkRecurrente" style={{ fontWeight: 'bold', color: '#4A5568', cursor: 'pointer' }}>¿Tarea Recurrente?</label>
+            {/* --- SECCIÓN DE HORARIOS --- */}
+            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', 
+                    padding: '12px', background: '#F9FAFB', borderRadius: '8px', 
+                    border: formulario.todoElDia ? '2px solid #00D1A0' : '1px solid #E2E8F0',
+                    transition: 'all 0.2s ease'
+                }}>
+                    <input type="checkbox" id="checkTodoDia" checked={formulario.todoElDia} onChange={e => setFormulario({...formulario, todoElDia: e.target.checked})} style={{ cursor: 'pointer', width: '20px', height: '20px' }} />
+                    <label htmlFor="checkTodoDia" style={{ fontWeight: 'bold', color: '#2D3748', cursor: 'pointer', fontSize: '14px' }}>📅 Todo el día</label>
+                </div>
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
+                    padding: '12px', background: formulario.todoElDia ? '#EDF2F7' : '#F9FAFB', 
+                    borderRadius: '8px', border: '1px solid #E2E8F0', opacity: formulario.todoElDia ? 0.6 : 1, transition: 'all 0.2s ease'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ fontSize: '12px', color: '#718096', fontWeight: 'bold' }}>DE:</span>
+                        <input type="time" disabled={formulario.todoElDia} style={{ ...inputStyle, padding: '5px 8px', width: 'auto', border: '1px solid #CBD5E0' }} value={formulario.horaInicio} onChange={e => setFormulario({...formulario, horaInicio: e.target.value})} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ fontSize: '12px', color: '#718096', fontWeight: 'bold' }}>A:</span>
+                        <input type="time" disabled={formulario.todoElDia} style={{ ...inputStyle, padding: '5px 8px', width: 'auto', border: '1px solid #CBD5E0' }} value={formulario.horaFin} onChange={e => setFormulario({...formulario, horaFin: e.target.value})} />
+                    </div>
+                </div>
             </div>
 
-            {formulario.esRecurrente ? (
-              <select style={inputStyle} value={formulario.tipoRecurrencia} onChange={e => setFormulario({...formulario, tipoRecurrencia: e.target.value})}>
-                <option value="Semanal">Cada Semana</option>
-                <option value="Quincenal">Cada Quincena (15 días)</option>
-                <option value="Mensual">Cada Mes</option>
-                <option value="Trimestral">Cada Trimestre (3 meses)</option>
-                <option value="Semestral">Cada Semestre (6 meses)</option>
-                <option value="Anual">Cada Año</option>
-              </select>
-            ) : (
-              <div />
-            )}
+            {/* --- SECCIÓN DE RECURRENCIA --- */}
+            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', 
+                    padding: '12px', background: '#F9FAFB', borderRadius: '8px', 
+                    border: formulario.esRecurrente ? '2px solid #00D1A0' : '1px solid #E2E8F0',
+                    transition: 'all 0.2s ease'
+                }}>
+                    <input type="checkbox" id="checkRecurrente" checked={formulario.esRecurrente} onChange={e => setFormulario({...formulario, esRecurrente: e.target.checked})} style={{ cursor: 'pointer', width: '20px', height: '20px' }} />
+                    <label htmlFor="checkRecurrente" style={{ fontWeight: 'bold', color: '#2D3748', cursor: 'pointer', fontSize: '14px' }}>🔄 ¿Tarea Recurrente?</label>
+                </div>
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
+                    padding: '12px', background: !formulario.esRecurrente ? '#EDF2F7' : '#F9FAFB', 
+                    borderRadius: '8px', border: '1px solid #E2E8F0', opacity: !formulario.esRecurrente ? 0.6 : 1, transition: 'all 0.2s ease'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+                        <span style={{ fontSize: '12px', color: '#718096', fontWeight: 'bold' }}>FRECUENCIA:</span>
+                        <select disabled={!formulario.esRecurrente} style={{ ...inputStyle, padding: '8px', flex: 1, border: '1px solid #CBD5E0' }} value={formulario.tipoRecurrencia} onChange={e => setFormulario({...formulario, tipoRecurrencia: e.target.value})}>
+                            <option value="Semanal">Cada Semana</option>
+                            <option value="Quincenal">Cada Quincena (15 días)</option>
+                            <option value="Mensual">Cada Mes</option>
+                            <option value="Trimestral">Cada Trimestre (3 meses)</option>
+                            <option value="Semestral">Cada Semestre (6 meses)</option>
+                            <option value="Anual">Cada Año</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             
             <div style={{ gridColumn: 'span 2', display: 'flex', gap: '10px' }}>
               <button type="submit" style={{...botonAccion, flex: 1}}>{editandoId ? '💾 Guardar Cambios' : '+ Crear Tarea'}</button>
@@ -189,6 +235,9 @@ export default function GestionTareas({ token }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h4 style={{ margin: '0 0 5px 0', textDecoration: tarea.estado === 'Resuelta' ? 'line-through' : 'none' }}>{tarea.titulo}</h4>
+                <span style={{ fontSize: '11px', background: '#EDF2F7', padding: '2px 6px', borderRadius: '4px', color: '#4A5568', fontWeight: 'bold' }}>
+                  {tarea.todoElDia ? '🕒 Todo el día' : `🕒 ${tarea.horaInicio} - ${tarea.horaFin}`}
+                </span>
                 {tarea.estado !== 'Resuelta' && (
                   <span style={{ fontSize: '12px', background: coloresPrioridad[tarea.prioridad], color: 'white', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
                     {tarea.prioridad}

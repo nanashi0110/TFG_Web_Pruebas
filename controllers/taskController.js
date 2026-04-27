@@ -16,10 +16,9 @@ exports.crearTarea = async (req, res) => {
   }
 };
 
-// 2. OBTENER TODAS LAS TAREAS (Y rellenar los datos del cliente)
+// 2. OBTENER TODAS LAS TAREAS
 exports.obtenerTareas = async (req, res) => {
   try {
-    // populate('clienteId', 'nombreEmpresa') trae solo el nombre de la empresa de la otra tabla
     const tareas = await Task.find().populate('clienteId', 'nombreEmpresa').sort({ fechaVencimiento: 1 }); 
     res.json(tareas);
   } catch (error) {
@@ -28,20 +27,17 @@ exports.obtenerTareas = async (req, res) => {
   }
 };
 
-// 3. ACTUALIZAR UNA TAREA (Con auditoría de tiempo y Auto-Clonado)
+// 3. ACTUALIZAR UNA TAREA (Con auditoría de tiempo y Auto-Clonado heredando horarios)
 exports.actualizarTarea = async (req, res) => {
   try {
     const datosNuevos = { ...req.body };
 
-    // Si nos piden marcarla como resuelta, guardamos el momento exacto
     if (datosNuevos.estado === 'Resuelta') {
       datosNuevos.fechaResolucion = new Date();
     } else if (datosNuevos.estado && datosNuevos.estado !== 'Resuelta') {
-      // Si la "des-resuelven", borramos la fecha
       datosNuevos.fechaResolucion = null; 
     }
 
-    // 1º Actualizamos la tarea actual
     const tareaActualizada = await Task.findByIdAndUpdate(
       req.params.id, 
       { $set: datosNuevos }, 
@@ -52,12 +48,10 @@ exports.actualizarTarea = async (req, res) => {
       return res.status(404).json({ mensaje: "Tarea no encontrada" });
     }
 
-    // 2º 🔄 LÓGICA DE RECURRENCIA (AUTO-CLONADO)
-    // Solo generamos una nueva si acaba de ser resuelta Y además era recurrente
+    // 🔄 LÓGICA DE RECURRENCIA (AUTO-CLONADO)
     if (datosNuevos.estado === 'Resuelta' && tareaActualizada.esRecurrente) {
       let proximaFecha = new Date(tareaActualizada.fechaVencimiento);
 
-      // Calculamos la fecha de la siguiente actuación
       switch (tareaActualizada.tipoRecurrencia) {
         case 'Semanal': proximaFecha.setDate(proximaFecha.getDate() + 7); break;
         case 'Quincenal': proximaFecha.setDate(proximaFecha.getDate() + 15); break;
@@ -67,23 +61,26 @@ exports.actualizarTarea = async (req, res) => {
         case 'Anual': proximaFecha.setFullYear(proximaFecha.getFullYear() + 1); break;
       }
 
-      // Creamos la nueva tarea automática que nacerá como "Pendiente"
+      // Creamos la nueva tarea heredando TODOS los ajustes de tiempo
       const tareaSiguiente = new Task({
         titulo: tareaActualizada.titulo,
         descripcion: tareaActualizada.descripcion,
-        clienteId: tareaActualizada.clienteId._id, // Pasamos el ID del cliente
+        clienteId: tareaActualizada.clienteId._id,
         prioridad: tareaActualizada.prioridad,
         fechaVencimiento: proximaFecha,
+        // ✅ HEREDAMOS EL HORARIO PERSONALIZADO
+        horaInicio: tareaActualizada.horaInicio,
+        horaFin: tareaActualizada.horaFin,
+        todoElDia: tareaActualizada.todoElDia,
         esRecurrente: true,
         tipoRecurrencia: tareaActualizada.tipoRecurrencia,
         estado: 'Pendiente' 
       });
       
       await tareaSiguiente.save();
-      console.log(`🔄 InfraDesk: Tarea recurrente generada automáticamente para el ${proximaFecha.toLocaleDateString()}`);
+      console.log(`🔄 InfraDesk: Tarea recurrente generada para el ${proximaFecha.toLocaleDateString()} con horario ${tareaActualizada.todoElDia ? 'Todo el día' : tareaActualizada.horaInicio}`);
     }
 
-    // Devolvemos a React la tarea original que el usuario acaba de resolver
     res.json(tareaActualizada);
   } catch (error) {
     console.error("Error al actualizar tarea:", error.message);

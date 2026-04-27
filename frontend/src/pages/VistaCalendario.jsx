@@ -29,10 +29,20 @@ export default function VistaCalendario({ token }) {
           
           const tareasTransformadas = tareasDb.map(tarea => {
             const fechaInicio = new Date(tarea.fechaVencimiento);
-            fechaInicio.setHours(9, 0, 0, 0); 
-            
             const fechaFin = new Date(tarea.fechaVencimiento);
-            fechaFin.setHours(14, 0, 0, 0); 
+
+            if (tarea.todoElDia) {
+                // Si es todo el día, lo ponemos de 00:00 a 23:59
+                fechaInicio.setHours(0, 0, 0, 0);
+                fechaFin.setHours(23, 59, 59, 999);
+            } else {
+                // Parseamos las horas guardadas (ej: "09:00")
+                const [hIni, mIni] = (tarea.horaInicio || "09:00").split(':');
+                const [hFin, mFin] = (tarea.horaFin || "14:00").split(':');
+                
+                fechaInicio.setHours(parseInt(hIni), parseInt(mIni), 0, 0);
+                fechaFin.setHours(parseInt(hFin), parseInt(mFin), 0, 0);
+            }
             
             return {
               id: tarea._id,
@@ -40,8 +50,11 @@ export default function VistaCalendario({ token }) {
               cliente: tarea.clienteId?.nombreEmpresa || 'Sin cliente',
               start: fechaInicio,
               end: fechaFin, 
+              allDay: tarea.todoElDia, // Crucial para la vista de calendario
               estado: tarea.estado,
-              prioridad: tarea.prioridad
+              prioridad: tarea.prioridad,
+              hInicio: tarea.horaInicio,
+              hFin: tarea.horaFin
             };
           });
           
@@ -151,7 +164,8 @@ export default function VistaCalendario({ token }) {
                     <h4 style={{ margin: '0 0 5px 0', textDecoration: tarea.estado === 'Resuelta' ? 'line-through' : 'none' }}>
                       {tarea.title}
                     </h4>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#4A5568' }}>🏢 Cliente: <strong>{tarea.cliente}</strong></p>
+                    <p style={{ margin: "4px 0", fontSize: '13px', color: '#4A5568' }}>🏢 Cliente: <strong>{tarea.cliente}</strong></p>
+                    <p style={{ margin: "4px 0", fontSize: '13px', color: '#718096' }}>🕒 Horario: {tarea.allDay ? 'Todo el día' : `${tarea.hInicio} - ${tarea.hFin}`}</p>
                     <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                       <span style={{ fontSize: '11px', background: '#E2E8F0', padding: '2px 6px', borderRadius: '4px' }}>{tarea.estado}</span>
                       <span style={{ fontSize: '11px', background: '#E2E8F0', padding: '2px 6px', borderRadius: '4px' }}>Prioridad: {tarea.prioridad}</span>
