@@ -1,0 +1,23 @@
+# Usamos Node 22
+FROM node:22
+
+# Nos ubicamos dentro de la carpeta frontend en el contenedor
+WORKDIR /app/frontend
+
+# Copiamos los archivos de dependencias del frontend
+COPY frontend/package*.json ./
+
+# Instalamos las librerías base de React
+RUN npm install
+
+# ¡Truco salvavidas! Forzamos la instalación del calendario aquí para evitar errores
+RUN npm install react-big-calendar moment
+
+# Copiamos el resto del código del frontend
+COPY frontend/ ./
+
+# Exponemos el puerto de Vite
+EXPOSE 5173
+
+# Arrancamos Vite permitiendo conexiones externas (0.0.0.0)
+CMD ["npx", "vite", "--host", "0.0.0.0", "--port", "5173"]

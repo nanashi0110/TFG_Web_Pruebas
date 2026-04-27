@@ -16,11 +16,13 @@ app.use(cors());
 app.use(express.json()); 
 
 // --- CONEXIÓN A MONGODB ---
-const dbURL = `mongodb://root:${process.env.DB_PASSWORD}@localhost:27017/gestion_tecnica_db?authSource=admin`;
+// Si existe la variable DB_HOST (Docker) la usa, si no, usa localhost (Debian)
+const dbHost = process.env.DB_HOST || 'localhost';
+const dbURL = `mongodb://root:${process.env.DB_PASSWORD}@${dbHost}:27017/gestion_tecnica_db?authSource=admin`;
 
 mongoose.connect(dbURL)
   .then(() => {
-    console.log('✅ Conectado a MongoDB (Docker)');
+    console.log(`✅ Conectado a MongoDB (${dbHost === 'localhost' ? 'Local' : 'Docker'})`);
   })
   .catch((err) => {
     console.error('❌ Error al conectar a MongoDB:', err.message);

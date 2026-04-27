@@ -1,0 +1,40 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: infradesk_db
+    ports:
+      - "27017:27017"
+    environment:
+      # TODO: Cambiar estas credenciales en un entorno de producción real
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mi_pass_segura_123
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: infradesk_backend
+    ports:
+      - "3000:3000"
+    environment:
+      # Inyectamos las variables directamente para facilitar el despliegue de prueba
+      - DB_PASSWORD=mi_pass_segura_123
+      - DB_HOST=mongodb
+      - JWT_SECRET=MiClaveSuperSecretaParaElTFG_2026!
+    depends_on:
+      - mongodb
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: infradesk_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

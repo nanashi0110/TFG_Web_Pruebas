@@ -5,17 +5,20 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   
-  // ✅ AQUÍ ESTÁ EL PUENTE QUE HABÍAMOS PERDIDO
+  // ✅ CONFIGURACIÓN DEL SERVIDOR PARA DOCKER
   server: {
+    host: true, // Permite que Vite exponga la red fuera del contenedor
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // <-- Cambia el 5000 si tu servidor Node usa otro puerto
+        // En Docker, apuntamos al nombre del contenedor del servidor Node
+        target: 'http://backend:3000', 
         changeOrigin: true,
+        secure: false,
       }
     }
   },
 
-  // ✅ AQUÍ ESTÁ LA CURA DEL CALENDARIO
+  // ✅ AQUÍ ESTÁ LA CURA DEL CALENDARIO (¡Intacta!)
   resolve: {
     dedupe: ['react', 'react-dom'],
   },

@@ -1,0 +1,20 @@
+# Usamos Node 22 como vimos que era necesario
+FROM node:22
+
+# Nos ubicamos en la carpeta de trabajo del contenedor
+WORKDIR /app
+
+# Copiamos solo los archivos de dependencias de la raíz (Backend)
+COPY package*.json ./
+
+# Instalamos las librerías del backend
+RUN npm install
+
+# Copiamos todo el código del backend (ignorando lo que esté en .dockerignore)
+COPY . .
+
+# Exponemos el puerto del backend
+EXPOSE 3000
+
+# Arrancamos el servidor
+CMD ["npm", "start"]
